@@ -1,0 +1,179 @@
+{% extends 'booking/base.html' %} {% load static %} {% block content %}
+<div class="account-container">
+  <div class="account-details">
+    <h2>Môj účet</h2>
+
+    {% if messages %}
+    <div class="account-messages">
+      {% for message in messages %}
+      <div
+        class="alert alert-{{ message.tags }}"
+        style="color: {% if message.tags == 'success' %}green{% else %}red{% endif %}; margin-bottom: 10px;"
+      >
+        {{ message }}
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="user-info">
+      <h3>Osobné údaje</h3>
+      <p><strong>Meno:</strong> {{ user_profile.user.username }}</p>
+      <p><strong>Email:</strong> {{ user_profile.user.email }}</p>
+      <p><strong>Telefón:</strong> {{ user_profile.phone }}</p>
+
+      <button id="toggle-password-change">Zmeniť heslo</button>
+
+      <form
+        action="{% url 'delete_account' %}"
+        method="post"
+        style="display: inline-block; margin-left: 10px"
+        onsubmit="return confirm('Naozaj chcete zrušiť účet? Zmažete tým aj všetky svoje rezervácie. Pokračovať?');"
+      >
+        {% csrf_token %}
+        <button type="submit" style="background-color: red; color: #fff">
+          Odstrániť účet
+        </button>
+      </form>
+
+      <div id="password-change-form" style="display: none; margin-top: 15px">
+        <h4>Zmena hesla</h4>
+        {% if password_form.errors %}
+        <div class="errorlist" style="color: red">
+          {{ password_form.non_field_errors }} {% for field in password_form %}
+          {% for error in field.errors %}
+          <p>{{ field.label }}: {{ error }}</p>
+          {% endfor %} {% endfor %}
+        </div>
+        {% endif %}
+        <form method="post" action="{% url 'moj_ucet' %}">
+          {% csrf_token %} {% for field in password_form %}
+          <div style="margin-bottom: 8px">
+            {{ field.label_tag }} {{ field }}
+          </div>
+          {% endfor %}
+          <button type="submit" name="change_password">Zmeniť heslo</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="account-reservations">
+    <h3>Moje rezervácie</h3>
+    {% if reservations %}
+    <ul>
+      {% for reservation in reservations %}
+      <li
+        style="
+          margin-bottom: 15px;
+          border: 1px solid #ddd;
+          padding: 10px;
+          list-style: none;
+        "
+      >
+        <strong>Izba:</strong> {{ reservation.room.room_number }}<br />
+        <strong>Typ izby:</strong> {{ reservation.room.get_room_type_display }}
+        <br />
+        <strong>Príchod:</strong> {{ reservation.check_in }}<br />
+        <strong>Odchod:</strong> {{ reservation.check_out }}<br />
+        <strong>Cena:</strong> {{ reservation.total_price }} €<br />
+
+        <form
+          action="{% url 'cancel_reservation' reservation.id %}"
+          method="post"
+          style="display: inline"
+        >
+          {% csrf_token %}
+          <button type="submit" class="cancel-button" style="margin-top: 10px">
+            Zrušiť rezerváciu
+          </button>
+        </form>
+
+        {% if reservation.is_paid %}
+        <button
+          type="button"
+          disabled
+          style="
+            background-color: green;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            margin-left: 10px;
+            margin-top: 10px;
+          "
+        >
+          Uhradené
+        </button>
+        {% else %}
+        <a href="{% url 'reservation_detail' reservation.id %}">
+          <button
+            type="button"
+            style="
+              background-color: orange;
+              color: white;
+              border: none;
+              padding: 5px 10px;
+              margin-left: 10px;
+              margin-top: 10px;
+            "
+          >
+            Uhradiť
+          </button>
+        </a>
+        {% endif %}
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <p>Nemáte žiadne rezervácie.</p>
+    {% endif %}
+  </div>
+</div>
+
+<script>
+  document
+    .getElementById("toggle-password-change")
+    .addEventListener("click", function () {
+      var formDiv = document.getElementById("password-change-form");
+      formDiv.style.display =
+        formDiv.style.display === "none" ? "block" : "none";
+    });
+</script>
+
+<style>
+  .account-container {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    align-items: flex-start;
+    margin-top: 20px;
+    text-align: left;
+  }
+
+  .account-details,
+  .account-reservations {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .account-messages {
+    margin-bottom: 10px;
+  }
+
+  .user-info {
+    margin-bottom: 20px;
+  }
+
+  @media (max-width: 768px) {
+    .account-container {
+      flex-direction: column;
+    }
+
+    .account-details,
+    .account-reservations {
+      width: 100%;
+      margin-bottom: 20px;
+    }
+  }
+</style>
+{% endblock %}

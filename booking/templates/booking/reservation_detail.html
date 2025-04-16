@@ -1,0 +1,27 @@
+{% extends 'booking/base.html' %} {% block content %}
+<h2>Detail rezervácie č. {{ reservation.id }}</h2>
+
+<ul>
+  <li><strong>Izba:</strong> Izba č. {{ reservation.room.room_number }}</li>
+  <li>
+    <strong>Typ izby:</strong> {{ reservation.room.get_room_type_display }}
+  </li>
+  <li><strong>Dátum príchodu:</strong> {{ reservation.check_in }}</li>
+  <li><strong>Dátum odchodu:</strong> {{ reservation.check_out }}</li>
+  <li><strong>Celková cena:</strong> {{ reservation.total_price }} €</li>
+  <li>
+    <strong>Stav platby:</strong>
+    {% if reservation.is_paid %}
+    <span style="color: green; font-weight: bold">Uhradené</span>
+    {% else %}
+    <span style="color: red; font-weight: bold">Neuhradené</span>
+    {% endif %}
+  </li>
+</ul>
+
+{% if not reservation.is_paid %}
+<form action="{% url 'stripe_payment' reservation.id %}" method="post">
+  {% csrf_token %}
+  <button type="submit">💳 Zaplať online</button>
+</form>
+{% endif %} {% endblock %}

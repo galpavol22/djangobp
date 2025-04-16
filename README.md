@@ -1,1 +1,1 @@
-# djangobp pouzivame postgressql databazu
+# djangobp pouzivame postgresql databazu  
